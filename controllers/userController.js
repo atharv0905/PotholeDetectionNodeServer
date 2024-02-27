@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/userSchema');
+const Session = require('../models/sessionsSchema');
 
 // ----------------------------------------------------------------------------------------------------------------------------------
 // create User
@@ -50,8 +51,16 @@ async function loginUser(req, res) {
             return res.status(401).json({ success: false, message: 'Invalid username or password' });
         }
 
+        // Create a new session for the user
+        const token = Math.random().toString(36).substring(2);
+        const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+        const newSession = new Session({ userid: user._id, token, expires, is_active: true, created_at: new Date() });
+
+        // Save the new session to the database
+        await newSession.save();
+
         // If username and password are correct
-        return res.status(200).json({ success: true, User: user });
+        return res.status(200).json({ success: true, Session: newSession });
     } catch (error) {
         console.error('Error during User login:', error);
         return res.status(500).json({ success: false, message: 'An error occurred' });
@@ -59,6 +68,35 @@ async function loginUser(req, res) {
 }
 // User login
 // ----------------------------------------------------------------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------------------------------------------------------------
+// User logout
+async function logoutUser(req, res) {
+    const token = req.body.token;
+
+    try {
+        // Find the session with the provided token
+        const session = await Session.findOne({ token });
+
+        // If no session found with the provided token
+        if (!session) {
+            return res.status(404).json({ message: 'Session not found' });
+        }
+
+        // Update the session to inactive
+        session.is_active = false;
+        await session.save();
+
+        return res.status(200).json({ message: 'Logout successful' });
+
+    } catch (error) {
+        console.error('Error during user logout:', error);
+        return res.status(500).json({ message: 'An error occurred' });
+    }
+}
+// User logout
+// 
+
 
 // ----------------------------------------------------------------------------------------------------------------------------------
 // Delete User
@@ -85,5 +123,6 @@ async function deleteUser(req, res) {
 module.exports = {
     loginUser,
     createUser,
+    logoutUser,
     deleteUser
 };

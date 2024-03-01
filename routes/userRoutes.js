@@ -8,10 +8,16 @@ router.post('/create', userController.createUser);                      // teste
 // Route for user login
 router.post('/login', userController.loginUser);                        // tested
 
+// Route for verifying user token
+// Protected route
+router.post('/protected', userController.verifyToken, (req, res) => {
+    res.send(req.username);
+});
+
 // Route for user delete 
-router.delete('/:username', userController.deleteUser);                 // tested
+router.delete('/:username', userController.deleteUser);                 
 
 // Route for user logout
-router.post('/logout', userController.logoutUser);                      // tested
+router.post('/logout', userController.logoutUser);                      
 
 module.exports = router;

@@ -1,28 +1,30 @@
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const { secretKey } = require('../config');
 const User = require('../models/userSchema');
 const Session = require('../models/sessionsSchema');
 
 // ----------------------------------------------------------------------------------------------------------------------------------
 // create User
 async function createUser(req, res) {
-    const { name, username, password } = req.body;
+    const { username, password } = req.body;
     try {
         // Check if the User already exists
         const existingUser = await User.findOne({ username });
         if (existingUser) {
-            return res.status(400).json({ success: false, message: 'User already exists with the provided username' });
+            return res.status(400).json({ message: 'Username already exists' });
         }
 
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10); // 10 is the saltRounds
 
         // Create a new User instance with hashed password
-        const newUser = new User({ name, username, password: hashedPassword });
+        const newUser = new User({ username, password: hashedPassword });
 
         // Save the new User to the database
         await newUser.save();
 
-        return res.status(201).json({ success: true, User: newUser });
+        res.status(200).json({ message: 'User created successfully' });
     } catch (error) {
         console.error('Error creating User:', error);
         return res.status(500).json({ success: false, message: 'An error occurred while creating User' });
@@ -42,32 +44,54 @@ async function loginUser(req, res) {
 
         // If no User found with the provided username
         if (!user) {
-            return res.status(401).json({ success: false, message: 'Invalid username or password' });
+            return res.status(401).json({ message: 'Invalid username or password' });
         }
 
         // Compare the provided password with the hashed password
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) {
-            return res.status(401).json({ success: false, message: 'Invalid username or password' });
+            return res.status(401).json({ message: 'Invalid username or password' });
         }
 
-        // Create a new session for the user
-        const token = Math.random().toString(36).substring(2);
-        const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-        const newSession = new Session({ userid: user._id, token, expires, is_active: true, created_at: new Date() });
+        if (await bcrypt.compare(password, user.password)) {
+            const token = jwt.sign({ username: user.username }, secretKey, { expiresIn: '1h' });
+            // return res.status(200).json({ token });
+            return res.status(200).send(token);
+        } else {
+            return res.status(401).json({ message: 'Invalid username or password' });
+        }
 
-        // Save the new session to the database
-        await newSession.save();
-
-        // If username and password are correct
-        return res.status(200).json({ success: true, Session: newSession });
     } catch (error) {
         console.error('Error during User login:', error);
-        return res.status(500).json({ success: false, message: 'An error occurred' });
+        return res.status(500).json({ message: 'An error occurred' });
     }
 }
 // User login
 // ----------------------------------------------------------------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------------------------------------------------------------
+// Verify User
+// Middleware to verify JWT token
+function verifyToken(req, res, next) {
+    let token = req.body.token;
+
+    // Check if token is found
+    if (!token) {
+        return res.status(403).json({ message: 'No token provided' });
+    }
+
+    // Verify token
+    jwt.verify(token, secretKey, (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: 'Failed to authenticate token' });
+        }
+        req.username = decoded.username;
+        next();
+    });
+}
+// Verify User
+// ----------------------------------------------------------------------------------------------------------------------------------
+
 
 // ----------------------------------------------------------------------------------------------------------------------------------
 // User logout
@@ -123,6 +147,7 @@ async function deleteUser(req, res) {
 module.exports = {
     loginUser,
     createUser,
+    verifyToken,
     logoutUser,
     deleteUser
 };

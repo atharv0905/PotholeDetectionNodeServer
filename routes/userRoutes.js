@@ -15,9 +15,7 @@ router.post('/protected', userController.verifyToken, (req, res) => {
 });
 
 // Route for user delete 
-router.delete('/:username', userController.deleteUser);                 
-
-// Route for user logout
-router.post('/logout', userController.logoutUser);                      
+router.delete('/:username', userController.deleteUser);                 // tested
+                 
 
 module.exports = router;

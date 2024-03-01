@@ -2,7 +2,6 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { secretKey } = require('../config');
 const User = require('../models/userSchema');
-const Session = require('../models/sessionsSchema');
 
 // ----------------------------------------------------------------------------------------------------------------------------------
 // create User
@@ -92,36 +91,6 @@ function verifyToken(req, res, next) {
 // Verify User
 // ----------------------------------------------------------------------------------------------------------------------------------
 
-
-// ----------------------------------------------------------------------------------------------------------------------------------
-// User logout
-async function logoutUser(req, res) {
-    const token = req.body.token;
-
-    try {
-        // Find the session with the provided token
-        const session = await Session.findOne({ token });
-
-        // If no session found with the provided token
-        if (!session) {
-            return res.status(404).json({ message: 'Session not found' });
-        }
-
-        // Update the session to inactive
-        session.is_active = false;
-        await session.save();
-
-        return res.status(200).json({ message: 'Logout successful' });
-
-    } catch (error) {
-        console.error('Error during user logout:', error);
-        return res.status(500).json({ message: 'An error occurred' });
-    }
-}
-// User logout
-// 
-
-
 // ----------------------------------------------------------------------------------------------------------------------------------
 // Delete User
 async function deleteUser(req, res) {
@@ -148,6 +117,5 @@ module.exports = {
     loginUser,
     createUser,
     verifyToken,
-    logoutUser,
     deleteUser
 };

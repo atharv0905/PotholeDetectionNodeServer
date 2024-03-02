@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { secretKey } = require('../config');
-const User = require('../models/userSchema');
+const Employee = require('../models/employeeSchema');
 
 // ----------------------------------------------------------------------------------------------------------------------------------
 // create User
@@ -9,7 +9,7 @@ async function createUser(req, res) {
     const { username, password } = req.body;
     try {
         // Check if the User already exists
-        const existingUser = await User.findOne({ username });
+        const existingUser = await Employee.findOne({ username });
         if (existingUser) {
             return res.status(400).json({ message: 'Username already exists' });
         }
@@ -18,7 +18,7 @@ async function createUser(req, res) {
         const hashedPassword = await bcrypt.hash(password, 10); // 10 is the saltRounds
 
         // Create a new User instance with hashed password
-        const newUser = new User({ username, password: hashedPassword });
+        const newUser = new Employee({ username, password: hashedPassword });
 
         // Save the new User to the database
         await newUser.save();
@@ -39,7 +39,7 @@ async function loginUser(req, res) {
     const { username, password } = req.body;
     try {
         // Find the User with the provided username
-        const user = await User.findOne({ username });
+        const user = await Employee.findOne({ username });
 
         // If no User found with the provided username
         if (!user) {
@@ -97,7 +97,7 @@ async function deleteUser(req, res) {
     const { username } = req.params;
     try {
         // Find the User with the provided username and delete it
-        const deletedUser = await User.findOneAndDelete({ username });
+        const deletedUser = await Employee.findOneAndDelete({ username });
 
         // If no User found with the provided username
         if (!deletedUser) {

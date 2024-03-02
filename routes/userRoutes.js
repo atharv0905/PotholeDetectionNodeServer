@@ -10,7 +10,7 @@ router.post('/login', userController.loginUser);                        // teste
 
 // Route for verifying user token
 // Protected route
-router.post('/protected', userController.verifyToken, (req, res) => {
+router.post('/protected', userController.verifyToken, (req, res) => {   // tested
     res.send(req.username);
 });
 

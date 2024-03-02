@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const cors = require('cors');
 const { PORT, DB_URI } = require('./config');
 const userRoutes = require('./routes/userRoutes');
+const employeeRoutes = require('./routes/employeeRoutes');
 
 const app = express();
 console.log("\x1b[2J\x1b[0f");
@@ -16,6 +17,7 @@ app.use(cors());
 
 // Routes
 app.use('/user', userRoutes);
+app.use('/employee', employeeRoutes);
 
 // Connect to MongoDB 
 mongoose.connect(DB_URI, {

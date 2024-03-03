@@ -113,9 +113,39 @@ async function deleteUser(req, res) {
 // Delete User
 // ----------------------------------------------------------------------------------------------------------------------------------
 
+// ----------------------------------------------------------------------------------------------------------------------------------
+// Update User Password 
+async function updatePassword(req, res) {
+    const { username, newPassword } = req.body;
+    try {
+        // Find the User with the provided username
+        const user = await Employee.findOne({ username });
+
+        // If no User found with the provided username
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Hash the new password
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10); // 10 is the saltRounds
+
+        // Update the user's password
+        user.password = hashedNewPassword;
+        await user.save();
+
+        return res.status(200).json({ success: true, message: 'Password updated successfully' });
+    } catch (error) {
+        console.error('Error updating password:', error);
+        return res.status(500).json({ success: false, message: 'An error occurred while updating password' });
+    }
+}
+// Update User Password
+// ----------------------------------------------------------------------------------------------------------------------------------
+
 module.exports = {
     loginUser,
     createUser,
     verifyToken,
-    deleteUser
+    deleteUser,
+    updatePassword
 };

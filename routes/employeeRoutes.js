@@ -16,6 +16,9 @@ router.post('/protected', employeeController.verifyToken, (req, res) => {   // t
 
 // Route for user delete 
 router.delete('/:username', employeeController.deleteUser);                 // tested
+
+// Route to update user password
+router.put('/updatePassword', employeeController.updatePassword);
                  
 
 module.exports = router;

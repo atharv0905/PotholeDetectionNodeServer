@@ -32,4 +32,16 @@ const upload = multer({ storage: storage });
 // Route for adding new pothole
 router.post('/add', upload.single('photo'), potholeController.addNewPothole);   // tested
 
+// ----------------------------------------------------------------------------------------------------------------------------------
+// get all pothole data
+router.get("/getAllPothole", potholeController.getAllPotholeData)
+
+router.get("/getLatLngOfAllPothole", potholeController.getLatLngOfAllPothole)
+
+router.get("/getImageOfSpecificPothole", potholeController.getImageOfSpecificPothole)
+// get all pothole data
+// ----------------------------------------------------------------------------------------------------------------------------------
+
+router.delete('/:id', potholeController.deletePotholeById);
+
 module.exports = router;

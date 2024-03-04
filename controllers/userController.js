@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { secretKey } = require('../config');
 const User = require('../models/userSchema');
+const UserLogin = require('../models/userLoginSchema');
 
 // ----------------------------------------------------------------------------------------------------------------------------------
 // create User
@@ -54,6 +55,8 @@ async function loginUser(req, res) {
 
         if (await bcrypt.compare(password, user.password)) {
             const token = jwt.sign({ username: user.username }, secretKey, { expiresIn: '672h' });
+            const newUserLogin = new UserLogin({ username });
+            await newUserLogin.save();
             // return res.status(200).json({ token });
             return res.status(200).send(token);
         } else {
@@ -85,6 +88,8 @@ function verifyToken(req, res, next) {
             return res.status(401).json({ message: 'Failed to authenticate token' });
         }
         req.username = decoded.username;
+        const newUserLogin = new UserLogin({ username: req.username });
+        newUserLogin.save();
         next();
     });
 }

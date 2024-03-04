@@ -3,12 +3,12 @@ const mongoose = require('mongoose');
 // Define the schema with specified collection name
 const employeeAnalysisSchema = new mongoose.Schema({
     username: String,
-    totalPotholesDetected: Number,
-    totalPotholeDetectedInLast28Days: Number,
-    totalPotholeFixed: Number,
-    totalPotholeFixedInLast28Days: Number,
-    totalPotholeDetectedInLast90Days: Number,
-    totalPotholeFixedInLast90Days: Number,
+    totalPotholesDetected: { type: Number, default: 0 },
+    totalPotholeFixed: { type: Number, default: 0 },
+    totalPotholeDetectedInLast28Days: { type: Number, default: 0 },
+    totalPotholeFixedInLast28Days: { type: Number, default: 0 },
+    totalPotholeDetectedInLast90Days: { type: Number, default: 0 },
+    totalPotholeFixedInLast90Days: { type: Number, default: 0 }
 }, { collection: 'employee_analysis' });
 
 // Define the model

@@ -2,12 +2,14 @@ const Pothole = require('../models/potholeSchema');
 const EmployeeAnalysis = require('../models/employeeAnalysisSchema');
 const path = require('path');
 const fs = require('fs').promises;
+const moment = require('moment');
 
 // ----------------------------------------------------------------------------------------------------------------------------------
 // add new pothole
 // ----------------------------------------------------------------------------------------------------------------------------------
 const addNewPothole = async (req, res) => {
     try {
+        // Create a new Pothole document
         const potholeData = new Pothole({
             latitude: req.body.latitude,
             longitude: req.body.longitude,
@@ -15,23 +17,51 @@ const addNewPothole = async (req, res) => {
             imagePath: req.file.path
         });
 
-        const totalPotholesDetected = await Pothole.countDocuments({ reportedBy: req.body.reportedBy });
         // Save the pothole data to the database
         const result = await potholeData.save();
-        console.log('Pothole Data:', result);
+
+        // Calculate the date 28 days ago and 90 days ago
+        const date28DaysAgo = new Date();
+        date28DaysAgo.setDate(date28DaysAgo.getDate() - 28);
+
+        const date90DaysAgo = new Date();
+        date90DaysAgo.setDate(date90DaysAgo.getDate() - 90);
+
+        // Count the total number of potholes detected by the employee
+        const totalPotholesDetected = await Pothole.countDocuments({ reportedBy: req.body.reportedBy });
+        
+        // Count the total number of potholes detected in the last 28 days
+        const totalPotholesDetectedInLast28Days = await Pothole.countDocuments({ 
+            reportedBy: req.body.reportedBy, 
+            detectedAt: { $gte: date28DaysAgo } 
+        });
+
+        // Count the total number of potholes detected in the last 90 days
+        const totalPotholesDetectedInLast90Days = await Pothole.countDocuments({ 
+            reportedBy: req.body.reportedBy, 
+            detectedAt: { $gte: date90DaysAgo } 
+        });
 
         // Update the employee's document in the EmployeeAnalysis collection
         await EmployeeAnalysis.findOneAndUpdate(
             { username: req.body.reportedBy },
-            { totalPotholesDetected },
+            { 
+                totalPotholesDetected,
+                totalPotholeDetectedInLast28Days: totalPotholesDetectedInLast28Days,
+                totalPotholeDetectedInLast90Days: totalPotholesDetectedInLast90Days
+            },
             { upsert: true } // Create a new document if it doesn't exist
         );
-        
+
         res.status(200).send('Added New Pothole Data');
     } catch (error) {
+        console.error('Error adding new pothole data:', error);
         res.status(400).send(`Error processing request: ${error.message}`);
     }
 };
+
+
+
 // ----------------------------------------------------------------------------------------------------------------------------------
 // add new pothole
 // ----------------------------------------------------------------------------------------------------------------------------------
@@ -50,7 +80,7 @@ const getAllPotholeData = async (req, res) => {
 
 const getLatLngOfAllPothole = async (req, res) => {
     try {
-        const potholes = await Pothole.find({}, {latitude: 1, longitude: 1});
+        const potholes = await Pothole.find({}, { latitude: 1, longitude: 1 });
         res.status(200).json(potholes);
     } catch (error) {
         res.status(500).send(`Error fetching locations: ${error.message}`);
@@ -58,7 +88,7 @@ const getLatLngOfAllPothole = async (req, res) => {
 }
 
 const getImageOfSpecificPothole = async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     try {
         const pothole = await Pothole.findById(id);
         // res.status(200).send(pothole.imagePath);
@@ -74,16 +104,16 @@ const getImageOfSpecificPothole = async (req, res) => {
 // ----------------------------------------------------------------------------------------------------------------------------------
 // resolve pothole issue
 const deletePotholeById = async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     try {
         const pothole = await Pothole.findById(req.params.id);
         if (!pothole) {
             return res.status(404).send('Pothole not found');
         }
-        
+
         // Delete the image file
         await fs.unlink(path.resolve(pothole.imagePath));
-        
+
         // Delete the pothole record from the database
         await Pothole.findByIdAndDelete(req.params.id);
 
@@ -103,6 +133,13 @@ async function markPotholeAsFixed(req, res) {
         // Get the current date and time
         const currentDate = new Date();
 
+        // Calculate the date 28 days ago and 90 days ago
+        const date28DaysAgo = new Date();
+        date28DaysAgo.setDate(date28DaysAgo.getDate() - 28);
+
+        const date90DaysAgo = new Date();
+        date90DaysAgo.setDate(date90DaysAgo.getDate() - 90);
+
         // Find the pothole by its ID and update the fixed attribute to true
         const updatedPothole = await Pothole.findByIdAndUpdate(potholeId, {
             fixed: true,
@@ -110,9 +147,35 @@ async function markPotholeAsFixed(req, res) {
             fixedAt: currentDate // Update fixedAt with current date and time
         }, { new: true });
 
+        // Count the total number of potholes fixed by the employee
+        const totalPotholesFixed = await Pothole.countDocuments({ fixededBy });
+
+        // Count the total number of potholes fixed in the last 28 days
+        const totalPotholesFixedInLast28Days = await Pothole.countDocuments({ 
+            fixededBy, 
+            fixedAt: { $gte: date28DaysAgo } 
+        });
+
+        // Count the total number of potholes fixed in the last 90 days
+        const totalPotholesFixedInLast90Days = await Pothole.countDocuments({ 
+            fixededBy, 
+            fixedAt: { $gte: date90DaysAgo } 
+        });
+
         if (!updatedPothole) {
             return res.status(404).json({ success: false, message: 'Pothole not found' });
         }
+
+        // Update the employee's document in the EmployeeAnalysis collection
+        await EmployeeAnalysis.findOneAndUpdate(
+            { username: req.body.fixededBy },
+            { 
+                totalPotholeFixed: totalPotholesFixed,
+                totalPotholeFixedInLast28Days: totalPotholesFixedInLast28Days,
+                totalPotholeFixedInLast90Days: totalPotholesFixedInLast90Days
+            },
+            { upsert: true } // Create a new document if it doesn't exist
+        );
 
         res.status(200).json({ success: true, message: 'Pothole marked as fixed successfully', pothole: updatedPothole });
     } catch (error) {

@@ -7,6 +7,8 @@ const employeeAnalysisSchema = new mongoose.Schema({
     totalPotholeDetectedInLast28Days: Number,
     totalPotholeFixed: Number,
     totalPotholeFixedInLast28Days: Number,
+    totalPotholeDetectedInLast90Days: Number,
+    totalPotholeFixedInLast90Days: Number,
 }, { collection: 'employee_analysis' });
 
 // Define the model

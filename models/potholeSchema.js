@@ -7,8 +7,9 @@ const potholeSchema = new mongoose.Schema({
   imagePath: String,
   reportedBy: String,
   fixed: { type: Boolean, default: false },
+  detectedAt: { type: Date, default: Date.now },
   fixededBy: { type: String, default: '' },
-  timestamp: { type: Date, default: Date.now }
+  fixedAt: { type: Date, default: null }
 }, { collection: 'potholes_data' });
 
 module.exports = mongoose.model('Pothole', potholeSchema);

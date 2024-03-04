@@ -100,8 +100,15 @@ const deletePotholeById = async (req, res) => {
 async function markPotholeAsFixed(req, res) {
     const { potholeId, fixededBy } = req.body;
     try {
+        // Get the current date and time
+        const currentDate = new Date();
+
         // Find the pothole by its ID and update the fixed attribute to true
-        const updatedPothole = await Pothole.findByIdAndUpdate(potholeId, { fixed: true, fixededBy }, { new: true });
+        const updatedPothole = await Pothole.findByIdAndUpdate(potholeId, {
+            fixed: true,
+            fixededBy,
+            fixedAt: currentDate // Update fixedAt with current date and time
+        }, { new: true });
 
         if (!updatedPothole) {
             return res.status(404).json({ success: false, message: 'Pothole not found' });

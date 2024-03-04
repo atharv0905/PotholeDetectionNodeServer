@@ -6,6 +6,8 @@ const potholeSchema = new mongoose.Schema({
   longitude: Number,
   imagePath: String,
   reportedBy: String,
+  fixed: { type: Boolean, default: false },
+  fixededBy: { type: String, default: '' },
   timestamp: { type: Date, default: Date.now }
 }, { collection: 'potholes_data' });
 

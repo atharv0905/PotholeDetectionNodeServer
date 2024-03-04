@@ -34,14 +34,16 @@ router.post('/add', upload.single('photo'), potholeController.addNewPothole);   
 
 // ----------------------------------------------------------------------------------------------------------------------------------
 // get all pothole data
-router.get("/getAllPothole", potholeController.getAllPotholeData)
+router.get("/getAllPothole", potholeController.getAllPotholeData)              // tested
 
-router.get("/getLatLngOfAllPothole", potholeController.getLatLngOfAllPothole)
+router.get("/getLatLngOfAllPothole", potholeController.getLatLngOfAllPothole)    // tested
 
-router.get("/getImageOfSpecificPothole", potholeController.getImageOfSpecificPothole)
+router.get("/getImageOfSpecificPothole/:id", potholeController.getImageOfSpecificPothole)   // tested
 // get all pothole data
 // ----------------------------------------------------------------------------------------------------------------------------------
 
-router.delete('/:id', potholeController.deletePotholeById);
+router.delete('/:id', potholeController.deletePotholeById);                            // tested
+
+router.post('/fix', potholeController.markPotholeAsFixed);                      // tested
 
 module.exports = router;

@@ -1,4 +1,5 @@
 const Pothole = require('../models/potholeSchema');
+const EmployeeAnalysis = require('../models/employeeAnalysisSchema');
 const path = require('path');
 const fs = require('fs').promises;
 
@@ -14,9 +15,17 @@ const addNewPothole = async (req, res) => {
             imagePath: req.file.path
         });
 
+        const totalPotholesDetected = await Pothole.countDocuments({ reportedBy: req.body.reportedBy });
         // Save the pothole data to the database
         const result = await potholeData.save();
         console.log('Pothole Data:', result);
+
+        // Update the employee's document in the EmployeeAnalysis collection
+        await EmployeeAnalysis.findOneAndUpdate(
+            { username: req.body.reportedBy },
+            { totalPotholesDetected },
+            { upsert: true } // Create a new document if it doesn't exist
+        );
         
         res.status(200).send('Added New Pothole Data');
     } catch (error) {
@@ -49,8 +58,9 @@ const getLatLngOfAllPothole = async (req, res) => {
 }
 
 const getImageOfSpecificPothole = async (req, res) => {
+    const {id} = req.params;
     try {
-        const pothole = await Pothole.findById(req.query.id);
+        const pothole = await Pothole.findById(id);
         // res.status(200).send(pothole.imagePath);
         res.status(200).sendFile(path.resolve(pothole.imagePath));
     } catch (error) {
@@ -85,11 +95,33 @@ const deletePotholeById = async (req, res) => {
 // resolve pothole issue
 // ----------------------------------------------------------------------------------------------------------------------------------
 
+// ----------------------------------------------------------------------------------------------------------------------------------
+// mark pothole as fixed
+async function markPotholeAsFixed(req, res) {
+    const { potholeId, fixededBy } = req.body;
+    try {
+        // Find the pothole by its ID and update the fixed attribute to true
+        const updatedPothole = await Pothole.findByIdAndUpdate(potholeId, { fixed: true, fixededBy }, { new: true });
+
+        if (!updatedPothole) {
+            return res.status(404).json({ success: false, message: 'Pothole not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Pothole marked as fixed successfully', pothole: updatedPothole });
+    } catch (error) {
+        console.error('Error marking pothole as fixed:', error);
+        res.status(500).json({ success: false, message: 'An error occurred while marking pothole as fixed' });
+    }
+}
+// mark pothole as fixed
+// ----------------------------------------------------------------------------------------------------------------------------------
+
 
 module.exports = {
     addNewPothole,
     getAllPotholeData,
     getLatLngOfAllPothole,
     getImageOfSpecificPothole,
-    deletePotholeById
+    deletePotholeById,
+    markPotholeAsFixed
 };

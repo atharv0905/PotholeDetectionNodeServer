@@ -8,6 +8,7 @@ const employeeRoutes = require('./routes/employeeRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const potholeRoutes = require('./routes/potholeRoutes');
 const userAnalysisRoutes = require('./routes/userAnalysisRoutes');
+const employeeAnalysisRoutes = require('./routes/employeeAnalysisRoutes');
 
 const app = express();
 console.log("\x1b[2J\x1b[0f");
@@ -24,6 +25,7 @@ app.use('/employee', employeeRoutes);
 app.use('/admin', adminRoutes);
 app.use('/pothole', potholeRoutes);
 app.use('/userAnalysis', userAnalysisRoutes);
+app.use('/employeeAnalysis', employeeAnalysisRoutes);
 
 // Connect to MongoDB 
 mongoose.connect(DB_URI, {

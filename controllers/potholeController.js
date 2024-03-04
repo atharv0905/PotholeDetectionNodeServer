@@ -130,6 +130,12 @@ const deletePotholeById = async (req, res) => {
 async function markPotholeAsFixed(req, res) {
     const { potholeId, fixededBy } = req.body;
     try {
+        // Check if the pothole is already fixed
+        const existingPothole = await Pothole.findById(potholeId);
+        if (existingPothole.fixed) {
+            return res.status(400).json({ success: false, message: 'Pothole is already fixed' });
+        }
+
         // Get the current date and time
         const currentDate = new Date();
 
@@ -162,10 +168,6 @@ async function markPotholeAsFixed(req, res) {
             fixedAt: { $gte: date90DaysAgo } 
         });
 
-        if (!updatedPothole) {
-            return res.status(404).json({ success: false, message: 'Pothole not found' });
-        }
-
         // Update the employee's document in the EmployeeAnalysis collection
         await EmployeeAnalysis.findOneAndUpdate(
             { username: req.body.fixededBy },
@@ -183,6 +185,7 @@ async function markPotholeAsFixed(req, res) {
         res.status(500).json({ success: false, message: 'An error occurred while marking pothole as fixed' });
     }
 }
+
 // mark pothole as fixed
 // ----------------------------------------------------------------------------------------------------------------------------------
 

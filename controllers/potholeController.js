@@ -14,6 +14,7 @@ const addNewPothole = async (req, res) => {
             latitude: req.body.latitude,
             longitude: req.body.longitude,
             reportedBy: req.body.reportedBy,
+            region: req.body.region,
             imagePath: req.file.path
         });
 

@@ -21,7 +21,7 @@ app.use(cors());
 
 // Routes
 app.use('/user', userRoutes); // user routes
-app.use('/employee', employeeRoutes);
+app.use('/employee', employeeRoutes); // employee routes
 app.use('/admin', adminRoutes);
 app.use('/pothole', potholeRoutes);
 app.use('/userAnalysis', userAnalysisRoutes);

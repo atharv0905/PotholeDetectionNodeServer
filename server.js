@@ -20,7 +20,7 @@ app.use(morgan('dev'));
 app.use(cors());
 
 // Routes
-app.use('/user', userRoutes);
+app.use('/user', userRoutes); // user routes
 app.use('/employee', employeeRoutes);
 app.use('/admin', adminRoutes);
 app.use('/pothole', potholeRoutes);
